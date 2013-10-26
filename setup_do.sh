@@ -12,6 +12,7 @@ ruby_v=2.0.0
 # read username
 adduser $username
 
+# install rvm
 su $username  << EOF
   whoami
   cd
@@ -23,6 +24,7 @@ echo -n '[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # 
 
 # echo -e "Type Ruby version (e.g: 1.9.3): \c "
 # read ruby_v
+# setup default ruby version
 su $username << EOF
   cd
   source ~/.rvm/scripts/rvm
@@ -31,11 +33,12 @@ su $username << EOF
   ruby -v
 EOF
 
-#echo -e "Your app name: \c "
-#read appname
-#echo -e "Your app domain \c "
-#read domain
+# echo -e "Your app name: \c "
+# read appname
+# echo -e "Your app domain \c "
+# read domain
 
+# configure unicorn for new app
 echo "
 upstream unicorn-$appname {
   server unix:/tmp/unicorn.$appname.sock;
@@ -63,8 +66,10 @@ server {
 
 ln -s /etc/nginx/sites-available/$domain /etc/nginx/sites-enabled/$domain
 
-#echo "/etc/init.d/nginx restart"
+# optional
+# echo "/etc/init.d/nginx restart"
 
+# unicorn start/stop configuration
 echo "
 #!/bin/sh
 set -e
@@ -142,10 +147,16 @@ esac
 
 chmod +x /etc/init.d/unicorn.$appname
 
-
+# add ability to connect via ssh
 mkdir /home/$username/.ssh/
 cp .ssh/authorized_keys /home/$username/.ssh/authorized_keys
 chown $username:$username /home/$username/.ssh/
+
+# gnerating ssh key for new user
+su $username << EOF
+  cd
+  ssh-keygen -t rsa
+EOF
 
 # create postgres user
 #su -c "createuser $appname --superuser" -- postgres
